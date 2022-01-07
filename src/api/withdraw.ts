@@ -81,6 +81,7 @@ const Withdraw = async function (app, { lightning, router }) {
       minWithdrawable: totalWithdrawalSat * MSAT,
       maxWithdrawable: totalWithdrawalSat * MSAT,
       balanceCheck: `${config.domainUrl}/withdraw/${code}?balanceCheck`,
+      payLink: `${config.domainUrl}/.well-known/lnurlp/${withdrawalCode.userAlias}`,
     };
     if (balanceCheck) {
       withdrawRequest.currentBalance = totalWithdrawalSat;
@@ -144,6 +145,7 @@ interface ILnUrlWithdrawRequest {
   minWithdrawable: number;
   maxWithdrawable: number;
   balanceCheck: string;
+  payLink:string;
   currentBalance?: number;
 }
 
