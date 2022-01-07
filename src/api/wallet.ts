@@ -47,11 +47,7 @@ const Wallet = async function (app, { lightning, router }){
             lightningAddress: `${username}@${config.domain}`,
             drainRequest:''
         };
-
-
     });
-
-
 } as FastifyPluginAsync<{ lightning: Client; router: Client }>;
 
 export default Wallet;

@@ -91,7 +91,7 @@ const Pay = async function (app, { lightning, router }) {
         successAction: null,
         disposable: true,
       };
-    } catch (error) {
+    } catch (error:any) {
       response.code(500);
       return {
         status: "ERROR",
