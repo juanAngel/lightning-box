@@ -8,6 +8,7 @@ import { getUserByAlias } from "../db/user";
 import { MSAT } from "../utils/constants";
 import getDb from "../db/db";
 import config from "../../config/config";
+import { ILnUrlPayQuery } from "utils/lnurl";
 
 const Pay = async function (app, { lightning, router }) {
   const db = await getDb();
@@ -41,7 +42,7 @@ const Pay = async function (app, { lightning, router }) {
     Params: {
       username: string;
     };
-    Querystring: ILnUrlPayParams;
+    Querystring: ILnUrlPayQuery;
   }>("/lightning-address/:username/send", async (request, response) => {
     try {
       const username = request.params.username;
@@ -112,12 +113,7 @@ function constructLnUrlPayMetaData(username: string, domain: string): Metadata {
   ];
 }
 
-interface ILnUrlPayParams {
-  amount: number;
-  comment?: string;
-}
-
-function parseSendTextCallbackQueryParams(params: any): ILnUrlPayParams {
+function parseSendTextCallbackQueryParams(params: any): ILnUrlPayQuery {
   try {
     return {
       amount: Number.parseInt(params.amount ?? "0", 10),

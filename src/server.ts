@@ -7,7 +7,7 @@ const domain = host.split(":")[0];
 const port = Number.parseInt(host.split(":")[1] ?? "8080");
 
 (async () => {
-  const server = await app();
+  const server = await app({logger: true});
 
   server.listen(port, domain, (err, address) => {
     if (err) {

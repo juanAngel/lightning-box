@@ -59,16 +59,4 @@ export function randomIntegerRange(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export interface LnUrlAuthQuerystring {
-  k1: string;
-  sig: string;
-  key: string;
-}
 
-export function createLnUrlAuth(k1: string, url: string) {
-  const params = querystring.encode({
-    tag: "login",
-    k1,
-  });
-  return bech32.encode("lnurl", bech32.toWords(stringToUint8Array(url + "?" + params)), 1024);
-}

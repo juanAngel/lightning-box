@@ -14,6 +14,7 @@ import getDb from "../db/db";
 import { getWithdrawalCode } from "../db/withdrawalCode";
 import config from "../../config/config";
 import { lnrpc } from "../proto";
+import { IErrorResponse, ILnUrlWithdrawQuery, ILnUrlWithdrawRequest, IStatusResponse } from "utils/lnurl";
 
 const Withdraw = async function (app, { lightning, router }) {
   const db = await getDb();
@@ -46,7 +47,8 @@ const Withdraw = async function (app, { lightning, router }) {
   app.get<{
     Params: { code: string };
     Querystring: { balanceCheck: string };
-  }>("/withdraw/:code", async (request, response) => {
+  }>("/withdraw/:code", async (request, response):Promise<ILnUrlWithdrawRequest|IErrorResponse> => {
+    console.log("withdraw/:code");
     const code = request.params.code;
     const { balanceCheck } = request.query;
 
@@ -92,8 +94,8 @@ const Withdraw = async function (app, { lightning, router }) {
 
   app.get<{
     Params: { code: string };
-    Querystring: ILnUrlWithdrawResponse;
-  }>("/withdraw/:code/callback", async (request, response) => {
+    Querystring: ILnUrlWithdrawQuery;
+  }>("/withdraw/:code/callback", async (request, response):Promise<IStatusResponse|IErrorResponse> => {
     const code = request.params.code;
     const withdrawResponse = request.query;
 
@@ -132,24 +134,12 @@ const Withdraw = async function (app, { lightning, router }) {
     if (!result.paymentError || result.paymentError.length === 0) {
       await updatePaymentsSetAsForwarded(db, withdrawalCode.userAlias, withdrawResponse.pr);
     }
+
+    return {
+      status:"OK"
+    }
   });
 } as FastifyPluginAsync<{ lightning: Client; router: Client }>;
 
 export default Withdraw;
 
-interface ILnUrlWithdrawRequest {
-  tag: "withdrawRequest";
-  callback: string;
-  k1: string;
-  defaultDescription: string;
-  minWithdrawable: number;
-  maxWithdrawable: number;
-  balanceCheck: string;
-  payLink:string;
-  currentBalance?: number;
-}
-
-interface ILnUrlWithdrawResponse {
-  k1: string;
-  pr: string;
-}

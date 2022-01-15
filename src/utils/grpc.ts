@@ -16,8 +16,12 @@ export const rpcImpl = (rpc: string, client: Client) => {
     );
   };
 };
+export interface GrpcClients{
+  lightning:Client;
+  router:Client;
+}
 
-export const getGrpcClients = () => {
+export const getGrpcClients = ():GrpcClients => {
   const loaderOptions = {
     keepCase: true,
     longs: String,
