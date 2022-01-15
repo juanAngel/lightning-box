@@ -7,7 +7,7 @@ export interface IWithdrawalCodeDB {
 
 export async function createWithdrawalCode(db: Database, { code, userAlias }: IWithdrawalCodeDB) {
   await db.run(
-    `INSERT INTO payment
+    `INSERT INTO withdrawalCode
       (code, userAlias)
     VALUES
       ($code, $userAlias)

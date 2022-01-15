@@ -14,6 +14,8 @@ export interface Config {
 
   // backend is the lightning node that will act as a backend for this server.
   backend: "lnd";
+  //dbUrl is the URL that describes the connection to the database
+  dbUrl:string;
 
   // Backend config specifically for lnd.
   backendConfigLnd?: {

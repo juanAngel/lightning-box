@@ -7,6 +7,7 @@ const config: Config = {
   domain: "192.168.1.1:8080",
   domainUrl: "http://192.168.1.1:8080",
   backend: "lnd",
+  dbUrl: "sqlite://source=~/.ln-box/database.db",
   backendConfigLnd: {
     grpcServer: "127.0.0.1:10007",
     cert: "~/path/to/lnd/tls.cert",

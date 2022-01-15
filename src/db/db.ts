@@ -1,8 +1,24 @@
 import sqlite3 from "sqlite3";
+import { Pool } from 'pg';
 import { Database, open } from "sqlite";
 import config from "../../config/config";
 
 let db: Database | null = null;
+export async function getConnection(uri:string) {
+  let [dbType,dbURI] = uri.split("://");
+  let dbVar = {} as {[key:string]:string};
+
+  dbURI.split(";").forEach(it => {
+    let [key, value] = it.split("=");
+
+    dbVar[key] = value;
+  });;
+
+  if(dbType == "sqlite" && dbVar["source"]){
+    return dbVar["source"];
+  }
+  return "";
+}
 
 export default async function getDb(forceReopen: boolean = false) {
   if (db && !forceReopen) {
@@ -10,8 +26,9 @@ export default async function getDb(forceReopen: boolean = false) {
   }
 
   db = await open({
-    filename: config.env === "test" ? ":memory:" : "./database.db",
+    filename: await getConnection(config.dbUrl),
     driver: sqlite3.Database,
+    mode: sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
   });
   await db.migrate();
 
