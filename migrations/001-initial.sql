@@ -4,7 +4,7 @@
 
 -- `user` contains the alias, as in <alias>@<domain.com>
 -- `pubkey` refers to the node pubkey that the service will allow forwards to
-CREATE TABLE user (
+CREATE TABLE wallet (
   alias TEXT PRIMARY KEY,
   pubkey TEXT NOT NULL
 );
@@ -15,6 +15,11 @@ CREATE INDEX index_user_pubkey ON user(pubkey);
 CREATE TABLE userAuthentication (
   userAlias,
   pubkey
+);
+
+CREATE TABLE authSecret(
+  k1 TEXT PRIMARY KEY,
+  expirationDate DATE NOT NULL
 );
 
 -- `withdrawalCode` are to be used to construct valid LNURL-withdraw endpoints for a user

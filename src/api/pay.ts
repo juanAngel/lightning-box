@@ -4,24 +4,27 @@ import crypto from "crypto";
 
 import { addInvoice } from "../utils/lnd-api";
 import { createPayment } from "../db/payment";
-import { getUserByAlias } from "../db/user";
+import { getWalletByAlias } from "../db/wallet";
 import { MSAT } from "../utils/constants";
 import getDb from "../db/db";
 import config from "../../config/config";
-import { ILnUrlPayQuery } from "utils/lnurl";
+import { constructLnUrlPayMetaData, 
+  ILnUrlPayQuerystring, 
+  parseSendTextCallbackQueryParams 
+} from "../utils/lnurl";
 
-const Pay = async function (app, { lightning, router }) {
+export const PayAddressDiscover = async function (app, { lightning, router }) {
   const db = await getDb();
 
   app.get<{
     Params: {
       username: string;
     };
-  }>("/.well-known/lnurlp/:username", async (request, response) => {
+  }>("/lnurlp/:username/", async (request, response) => {
     const username = request.params.username;
-    const user = await getUserByAlias(db, username);
-    if (!user) {
-      response.code(400);
+    const wallet = await getWalletByAlias(db, username);
+    if (!wallet) {
+      response.code(404);
       return {
         status: "ERROR",
         reason: `The recipient ${username}@${config.domain} does not exist.`,
@@ -37,17 +40,21 @@ const Pay = async function (app, { lightning, router }) {
       commentAllowed: 144,
     };
   });
+} as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>
+
+export const PayAddress = async function (app, { lightning, router }) {
+  const db = await getDb();
 
   app.get<{
     Params: {
       username: string;
     };
-    Querystring: ILnUrlPayQuery;
-  }>("/lightning-address/:username/send", async (request, response) => {
+    Querystring: ILnUrlPayQuerystring;
+  }>("/lightning-address/:username/send/", async (request, response) => {
     try {
       const username = request.params.username;
-      const user = await getUserByAlias(db, username);
-      if (!user) {
+      const wallet = await getWalletByAlias(db, username);
+      if (!wallet) {
         response.code(400);
         return {
           status: "ERROR",
@@ -100,27 +107,5 @@ const Pay = async function (app, { lightning, router }) {
       };
     }
   });
-} as FastifyPluginAsync<{ lightning: Client; router: Client }>;
+} as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
 
-export default Pay;
-
-type Metadata = [string, string][];
-
-function constructLnUrlPayMetaData(username: string, domain: string): Metadata {
-  return [
-    ["text/plain", `Payment to ${username}@${domain}`],
-    ["text/identifier", `${username}@${domain}`],
-  ];
-}
-
-function parseSendTextCallbackQueryParams(params: any): ILnUrlPayQuery {
-  try {
-    return {
-      amount: Number.parseInt(params.amount ?? "0", 10),
-      comment: params.comment ?? "",
-    };
-  } catch (e) {
-    console.error(e);
-    throw new Error("Could not parse query params");
-  }
-}

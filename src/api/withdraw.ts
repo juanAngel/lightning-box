@@ -14,7 +14,12 @@ import getDb from "../db/db";
 import { getWithdrawalCode } from "../db/withdrawalCode";
 import config from "../../config/config";
 import { lnrpc } from "../proto";
-import { IErrorResponse, ILnUrlWithdrawQuery, ILnUrlWithdrawRequest, IStatusResponse } from "utils/lnurl";
+import { 
+  IErrorResponse, 
+  ILnUrlWithdrawQuery, 
+  ILnUrlWithdrawRequest, 
+  IStatusResponse 
+} from "../utils/lnurl";
 
 const Withdraw = async function (app, { lightning, router }) {
   const db = await getDb();

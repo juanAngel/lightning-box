@@ -58,5 +58,19 @@ export function sha256Buffer(bytes: Uint8Array) {
 export function randomIntegerRange(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+declare global {
+  interface Date {
+    addDays(days:number): Date;
+  }
+}
+Date.prototype.addDays = function(days:number) {
+  var date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+}
+export const getExpirationDate = (days:number):Date =>{
+  const result = new Date();
+  result.setDate(result.getDate()+days);
 
-
+  return result;
+}
