@@ -7,11 +7,9 @@ export interface IAuthenticationDB {
 
 export interface IPaymentDB {
   paymentRequest: string;
-  paymentRequestForward: string | null;
   userAlias: string;
   amountSat: number;
   settled: number;
-  forwarded: number;
   comment: string | null;
 }
 
@@ -19,11 +17,9 @@ export async function createPayment(
   db: Database,
   {
     paymentRequest,
-    paymentRequestForward,
     userAlias,
     amountSat,
     settled,
-    forwarded,
     comment,
   }: IPaymentDB,
 ) {
@@ -31,31 +27,25 @@ export async function createPayment(
     `INSERT INTO payment
       (
         paymentRequest,
-        paymentRequestForward,
         userAlias,
         amountSat,
         settled,
-        forwarded,
         comment
       )
     VALUES
       (
         $paymentRequest,
-        $paymentRequestForward,
         $userAlias,
         $amountSat,
         $settled,
-        $forwarded,
         $comment
       )
     `,
     {
       $paymentRequest: paymentRequest,
-      $paymentRequestForward: paymentRequestForward,
       $userAlias: userAlias,
       $amountSat: amountSat,
       $settled: settled,
-      $forwarded: forwarded,
       $comment: comment,
     },
   );
@@ -66,18 +56,14 @@ export async function createPayment(
  */
 export async function updatePayment(
   db: Database,
-  { paymentRequest, paymentRequestForward, settled, forwarded }: IPaymentDB,
+  { paymentRequest, settled }: IPaymentDB,
 ) {
   await db.run(
     `UPDATE payment
-    SET paymentRequestForward = $paymentRequestForward,
-        settled = $settled,
-        forwarded = $forwarded
+    SET settled = $settled
     WHERE paymentRequest = $paymentRequest`,
     {
-      $paymentRequestForward: paymentRequestForward,
       $settled: settled,
-      $forwarded: forwarded,
       $paymentRequest: paymentRequest,
     },
   );

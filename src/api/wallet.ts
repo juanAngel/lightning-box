@@ -8,18 +8,22 @@ import config from "../../config/config";
 import { compareDesc } from "date-fns";
 import {randomBytes} from "crypto";
 import { createDrainRequest, createLightningAdress, IErrorResponse } from "../utils/lnurl";
-import { IJWTPayload, jwtDecode, jwtVerify } from "./login";
+import { jwtDecode, jwtVerify } from "./login";
 import { apiPrefix } from "./v1";
-import { createWallet, getWalletByAlias, getWalletsByPubkey } from "db/wallet";
+import { createWallet, getWalletByAlias, getWalletsByPubkey } from "../db/wallet";
 
 export interface IWalletRegisterResponse{
-    tag: "walletRequest";
+    tag: "walletRegisterRequest";
     lightningAddress:string;
     drainRequest:string;
 }
+export interface IWalletResponse{
+    tag: "walletRequest";
+    alias:string[];
+}
 const createWalletRegisterResponse = async (username:string,code:string):Promise<IWalletRegisterResponse>=>{
     return {
-        tag: "walletRequest",
+        tag: "walletRegisterRequest",
         lightningAddress: createLightningAdress(username,config.domain),
         drainRequest:createDrainRequest(config.domainUrl,apiPrefix,code)
     };
@@ -34,13 +38,21 @@ export const Wallet = async function (app, { lightning, router }){
         };
       }>(
         "/wallet/",
-        async (request, response)=>{
+        {
+          preValidation: jwtVerify
+        },
+        async (request, response):Promise<IWalletResponse>=>{
             const {key} = jwtDecode(app,request);
 
             const wallet = await getWalletsByPubkey(db,key);
+            let alias:string[] =[];
+            if(wallet){
+                alias = wallet?.map((value)=>value.alias);
+            }
 
             return {
-                status: "OK"
+                tag:"walletRequest",
+                alias:alias
             }
         }
     )
@@ -79,7 +91,7 @@ export const Wallet = async function (app, { lightning, router }){
 
             
             await beginTransaction(db);
-            await createWallet(db,{alias:username,pubkey:key});
+            await createWallet(db,username,key);
             await createWithdrawalCode(db,{code:code,userAlias:username});
             await commit(db);
 

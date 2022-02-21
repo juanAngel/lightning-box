@@ -86,10 +86,8 @@ export const PayAddress = async function (app, { lightning, router }) {
 
       await createPayment(db, {
         paymentRequest: invoice.paymentRequest,
-        paymentRequestForward: null,
         userAlias: username,
         amountSat: amount / MSAT,
-        forwarded: 0,
         settled: 0,
         comment: comment ?? null,
       });

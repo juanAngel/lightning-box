@@ -16,6 +16,8 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.5.0",
     "@grpc/proto-loader": "^0.6.4",
+    "@node-lightning/invoice": "^0.27.0",
+    "async-mutex": "^0.3.2",
     "bech32": "2.0.0",
     "config": "^3.3.6",
     "date-fns": "^2.23.0",

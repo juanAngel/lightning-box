@@ -1,9 +1,8 @@
-import { URLSearchParams } from "url";
-import { bech32 } from "bech32";
+import { URL, URLSearchParams } from "url";
+//import { bech32 } from "bech32";
 import { stringToUint8Array, hexToUint8Array } from "./common";
 import secp256k1 from "secp256k1";
 
-import config from "../../config/config";
 
 export interface LnUrlAuthQuery {
     k1: string;
@@ -16,10 +15,10 @@ export interface LnUrlAuthQuery {
 export interface ILnUrlPayQuery {
     amount: number;
     comment?: string;
-  }
+}
 export interface ILnUrlPayQuerystring {
-amount: string;
-comment?: string;
+  amount: string;
+  comment?: string;
 }
 
 export interface ILnUrlWithdrawRequest {
@@ -48,7 +47,6 @@ export interface IErrorResponse {
     reason: string;
 }
 
-
 export const verifyLnurlAuth = (sig:string,key:string,k1:string):boolean=>{
     const valid = secp256k1.ecdsaVerify(
         secp256k1.signatureImport(hexToUint8Array(sig)),
@@ -59,11 +57,17 @@ export const verifyLnurlAuth = (sig:string,key:string,k1:string):boolean=>{
 }
 
 export const createLnUrlAuth = (k1: string, url: string) => {
-    const params = new URLSearchParams({
-      tag: "login",
-      k1:k1,
-    }).toString();
-    return bech32.encode("lnurl", bech32.toWords(stringToUint8Array(url + "?" + params)), 1024);
+    let lnUrl = new URL(url);
+    lnUrl.searchParams.append("tag","login");
+    lnUrl.searchParams.append("k1",k1);
+    lnUrl.protocol = "keyauth";
+    let result = lnUrl.toString().replace(/https?/,"keyauth")
+
+    console.log("lnurl: "+result);
+
+    //return bech32.encode("lnurl", bech32.toWords(stringToUint8Array(url + "?" + params)), 1024);
+
+    return result;
 }
 
 type Metadata = [string, string][];
@@ -80,7 +84,7 @@ export const createLightningAdress= (username:string,domain:string)=>{
   return `${username}@${domain}`;
 }
 export const createDrainRequest = (domainUrl:string,apiPrefix:string,code:string)=>{
-  return `${domainUrl}${apiPrefix}/withdraw/${code}`;
+  return `${domainUrl}${apiPrefix}/withdraw/${code}`.replace(/https?/,"lnurlw");
 }
 
 export function parseSendTextCallbackQueryParams(params: ILnUrlPayQuerystring): ILnUrlPayQuery {

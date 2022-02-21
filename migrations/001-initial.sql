@@ -6,9 +6,10 @@
 -- `pubkey` refers to the node pubkey that the service will allow forwards to
 CREATE TABLE wallet (
   alias TEXT PRIMARY KEY,
-  pubkey TEXT NOT NULL
+  pubkey TEXT NOT NULL,
+  amountMSat INTEGER NOT NULL UNSIGNED
 );
-CREATE INDEX index_user_pubkey ON user(pubkey);
+CREATE INDEX index_user_pubkey ON wallet(pubkey);
 
 -- `userAuthentication` binds a valid LNURL-auth pubkey
 -- and will be used to bind adminstration of the user

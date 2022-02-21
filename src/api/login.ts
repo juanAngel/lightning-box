@@ -22,7 +22,7 @@ import { FastifyRequest } from "fastify";
 export interface IJWTPayload{
   key:string;
 }
-export interface ILoginResponse{
+export interface ILoginRequest{
   tag: "loginRequest";
   lnurlAuth:string;
   expirationDate:Date;
@@ -45,7 +45,7 @@ export const jwtVerify = (async (request,response)=>{
   }
 }) as RouteHandlerMethod;
 
-const createLnUrlAuthResponse = async (db:Database,prefix:string):Promise<ILoginResponse>=>{
+const createLnUrlAuthRequest = async (db:Database,prefix:string):Promise<ILoginRequest>=>{
 
   const k1 = bytesToHexString(await generateBytes(32));
   let expirationDate = new Date().addDays(1);
@@ -71,9 +71,9 @@ export const AuthDiscovery = (async (app, { lightning, router})=>{
       };
   })
   app.get<{
-    }>("/keyauth/login/", async (request, response):Promise<ILoginResponse> =>{
+    }>("/keyauth/login/", async (request, response):Promise<ILoginRequest> =>{
 
-      return await createLnUrlAuthResponse(db,apiPrefix);
+      return await createLnUrlAuthRequest(db,apiPrefix);
   })
   
 }) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
