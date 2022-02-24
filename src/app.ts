@@ -8,6 +8,7 @@ import fastifyJwt from "fastify-jwt";
 import { bytesToHexString, generateBytes } from "./utils/common";
 import { V1 } from "./api/v1";
 import { Discovery } from "./api/discovery";
+import websocket from "fastify-websocket";
 
 const { lightning, router } = getGrpcClients();
 
@@ -18,6 +19,7 @@ export default async function (options?: FastifyServerOptions) {
   app.register(fastifyJwt, { 
     secret: bytesToHexString(await generateBytes(20))
   });
+  app.register(websocket)
 
   app.register(V1,{
     lightning,

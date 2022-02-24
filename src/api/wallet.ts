@@ -80,6 +80,7 @@ export const Wallet = async function (app, { lightning, router }){
                 response.code(400);
                 return {
                     status: "ERROR",
+                    code:400,
                     reason: `The recipient ${username}@${config.domain} already in use.`,
                 };
             }
@@ -103,6 +104,7 @@ export const Wallet = async function (app, { lightning, router }){
               response.code(500);
               return {
                   status:"ERROR",
+                  code:400,
                   reason: "internal errores"
               }
           }

@@ -1,7 +1,8 @@
 import { URL, URLSearchParams } from "url";
-//import { bech32 } from "bech32";
+import { bech32 } from "bech32";
 import { stringToUint8Array, hexToUint8Array } from "./common";
 import secp256k1 from "secp256k1";
+import config from "../../config/config";
 
 
 export interface LnUrlAuthQuery {
@@ -44,6 +45,7 @@ export interface IStatusResponse{
 
 export interface IErrorResponse {
     status: "ERROR";
+    code:number;
     reason: string;
 }
 
@@ -61,11 +63,17 @@ export const createLnUrlAuth = (k1: string, url: string) => {
     lnUrl.searchParams.append("tag","login");
     lnUrl.searchParams.append("k1",k1);
     lnUrl.protocol = "keyauth";
-    let result = lnUrl.toString().replace(/https?/,"keyauth")
+    let urlString = lnUrl.toString()
 
-    console.log("lnurl: "+result);
+    console.log("lnurl: "+urlString);
 
-    //return bech32.encode("lnurl", bech32.toWords(stringToUint8Array(url + "?" + params)), 1024);
+    let result = undefined;
+    if(config.bech32Encode){
+      result = bech32.encode("lnurl", bech32.toWords(stringToUint8Array(urlString)), 1024);
+    }else{
+      result = urlString.replace(/https?/,"keyauth")
+    }
+
 
     return result;
 }

@@ -11,6 +11,7 @@ const config: Config = {
   domainUrl: process.env.DOMAIN_URL ||"https://192.168.1.1:8080",
   backend: "lnd",
   dbUrl: process.env.DB_URL ||"sqlite://source=~/.ln-box/database.db",
+  bech32Encode: process.env.BECH32_ENCODE=="true"?true:false || true,
   backendConfigLnd: {
     grpcServer: process.env.LND_GRPC || "127.0.0.1:10007",
     cert: process.env.LND_CERT || "~/.lnd/tls.cert",

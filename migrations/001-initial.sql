@@ -7,7 +7,7 @@
 CREATE TABLE wallet (
   alias TEXT PRIMARY KEY,
   pubkey TEXT NOT NULL,
-  amountMSat INTEGER NOT NULL UNSIGNED
+  amountMSat INTEGER NOT NULL
 );
 CREATE INDEX index_user_pubkey ON wallet(pubkey);
 

@@ -17,8 +17,14 @@ import { createAuthSecret, deleteAuthSecret, getAuthSecret } from "../db/auth";
 import { Database } from "sqlite";
 import { apiPrefix } from "./v1";
 import { FastifyRequest } from "fastify";
+import { SocketStream } from "fastify-websocket";
+import { FastifyReply } from "fastify";
 
 
+export interface ICommand{
+  cmdName:string
+  arg:{[key:string]:any}[]
+}
 export interface IJWTPayload{
   key:string;
 }
@@ -45,6 +51,91 @@ export const jwtVerify = (async (request,response)=>{
   }
 }) as RouteHandlerMethod;
 
+let lnurlAuth = async (key:string, sig:string, k1:string,app:FastifyInstance):Promise<ILoginSucessResponse|IErrorResponse> =>{
+  const db = await getDb();
+
+  if(key == undefined || sig == undefined || k1 == undefined){
+    return {
+        status: "ERROR",
+        code: 400,
+        reason: `Missing required parameter`,
+    };
+  }
+  let authSecret = await getAuthSecret(db,k1);
+  if(authSecret && authSecret.expirationDate<new Date()){
+    await deleteAuthSecret(db,k1);
+    const error: IErrorResponse = {
+      status: "ERROR",
+      code:401,
+      reason:
+        "k1 expired",
+    };
+    return error;
+  }
+
+  // Verify that the message is valid
+  if (!verifyLnurlAuth(sig,key,k1)) {
+    const error: IErrorResponse = {
+      status: "ERROR",
+      code:401,
+      reason:
+        "The Public key provided doesn't match with the public key extracted from the signature.",
+    };
+    return error;
+  }
+
+  deleteAuthSecret(db,k1);
+  const accessToken = app.jwt.sign(
+    { key } as IJWTPayload,
+    {
+      expiresIn: "1d"
+    }
+  );
+
+  return {
+    status:"OK",
+    event:"JWT",
+    token:accessToken
+  }
+}
+export class CommandGetKeyauth{
+  
+  static cmdName: string = "keyauth";
+  static loginSession:Map<string,(accessToken: string)=>void> = new Map()
+
+  static handler = async (connection:SocketStream,command:ICommand):Promise<void> =>{
+    const db = await getDb();
+
+    const k1 = bytesToHexString(await generateBytes(32));
+    let expirationDate = new Date().addDays(1);
+  
+    await createAuthSecret(db,k1,expirationDate);
+    const lnurlAuth = createLnUrlAuth(k1,`${config.domainUrl}${apiPrefix}/lnurl-auth-ws/`);
+  
+    let result = {
+      tag:"loginRequest",
+      lnurlAuth:lnurlAuth,
+      expirationDate:expirationDate,
+    }
+    connection.socket.send(JSON.stringify(result))
+
+    CommandGetKeyauth.loginSession.set(k1,(accessToken)=>{
+      
+      CommandGetKeyauth.loginSession.delete(k1)
+      connection.socket.send(JSON.stringify({
+          status:"OK",
+          event:"JWT",
+          token:accessToken
+      }))
+    })
+  }
+}
+
+
+let webSochetCommand:{[key:string]:(connection:SocketStream,command:ICommand)=>Promise<void>} = {
+  [CommandGetKeyauth.cmdName]:CommandGetKeyauth.handler
+}
+
 const createLnUrlAuthRequest = async (db:Database,prefix:string):Promise<ILoginRequest>=>{
 
   const k1 = bytesToHexString(await generateBytes(32));
@@ -56,93 +147,89 @@ const createLnUrlAuthRequest = async (db:Database,prefix:string):Promise<ILoginR
   return {
     tag:"loginRequest",
     lnurlAuth:lnurlAuth,
-    expirationDate:expirationDate
+    expirationDate:expirationDate,
   }
 }
 export const AuthDiscovery = (async (app, { lightning, router})=>{
-  const db = await getDb();
+  try {
+    const db = await getDb();
 
-  app.get<{
-      Querystring: LnUrlAuthQuery;
-    }>("/keyauth/login-ws/", async (request, response):Promise<IStatusResponse> =>{
+    app.get<{
+        Querystring: LnUrlAuthQuery;
+      }>("/keyauth/login-ws/",{ websocket: true }, async (connection, response):Promise<any> =>{
+        connection.socket.onmessage = (e) => {
+          let cmd:ICommand = JSON.parse(e.data.toString());
+          
+          let handler = webSochetCommand[cmd.cmdName];
+          if(handler)
+            handler(connection,cmd);
 
-      return {
-        status:"OK"
-      };
-  })
-  app.get<{
-    }>("/keyauth/login/", async (request, response):Promise<ILoginRequest> =>{
+        }
+        /*
+        return {
+          status:"OK"
+        };*/
+    })
+    app.get<{
+      }>("/keyauth/login/", async (request, response):Promise<ILoginRequest> =>{
 
-      return await createLnUrlAuthRequest(db,apiPrefix);
-  })
+        return await createLnUrlAuthRequest(db,apiPrefix);
+    })
+  } catch (error) {
+    console.error(error);
+  }
   
 }) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
 
 export const Login = (async (app, { lightning, router})=>{
-    const db = await getDb();
-
-    /*
-    app.decorate("authenticate", (async (request, response)=>{
-      try {
-          await request.jwtVerify()
-      } catch (err) {
-          response.send(err)
-      }
-    })as RouteHandlerMethod)*/
-
-    app.get<{
-        Querystring: LnUrlAuthQuery;
-      }>("/lnurl-auth-ws/", async (request, response) =>{
-
-    })
-    app.get<{
-        Querystring: LnUrlAuthQuery;
-      }>("/lnurl-auth/", async (request, response):Promise<ILoginSucessResponse|IErrorResponse> =>{
-        const sig = request.query.sig;
-        const key = request.query.key;
-        const k1 = request.query.k1;
-        if(!key && !sig && !k1){
-            response.code(400);
-            return {
-                status: "ERROR",
-                reason: `Missing required parameter`,
-            };
+    try {
+      const db = await getDb();
+      /*
+      app.decorate("authenticate", (async (request, response)=>{
+        try {
+            await request.jwtVerify()
+        } catch (err) {
+            response.send(err)
         }
-        let authSecret = await getAuthSecret(db,k1);
-        if(authSecret && authSecret.expirationDate<new Date()){
-          await deleteAuthSecret(db,k1);
-          response.code(401);
-          const error: IErrorResponse = {
-            status: "ERROR",
-            reason:
-              "k1 expired",
-          };
-          return error;
-        }
+      })as RouteHandlerMethod)*/
 
-        // Verify that the message is valid
-        if (!verifyLnurlAuth(sig,key,k1)) {
-          response.code(401);
-          const error: IErrorResponse = {
-            status: "ERROR",
-            reason:
-              "The Public key provided doesn't match with the public key extracted from the signature.",
-          };
-          return error;
-        }
+      app.get<{
+          Querystring: LnUrlAuthQuery;
+        }>("/lnurl-auth-ws/", async (request , response) =>{
+          const sig = request.query.sig;
+          const key = request.query.key;
+          const k1 = request.query.k1;
 
-        deleteAuthSecret(db,k1);
-        const accessToken = app.jwt.sign(
-          { key } as IJWTPayload,
-          {
-            expiresIn: "1d"
+          let result = await lnurlAuth(key,sig,k1,app);
+          if(result.status == "ERROR"){
+            response.code(result.code);
+          }else{
+            let cb = CommandGetKeyauth.loginSession.get(k1);
+            if(cb){
+              cb(result.token);
+              CommandGetKeyauth.loginSession.delete(k1);
+            }
           }
-        );
 
-        return {
-          status:"OK",
-          event:"JWT",
-          token:accessToken
-        }
-    })
+          return result;
+      })
+      app.get<{
+          Querystring: LnUrlAuthQuery;
+        }>("/lnurl-auth/", async (request, response):Promise<ILoginSucessResponse|IErrorResponse> =>{
+          const sig = request.query.sig;
+          const key = request.query.key;
+          const k1 = request.query.k1;
+
+          let result = await lnurlAuth(key,sig,k1,app);
+          if(result.status == "ERROR"){
+            response.code(result.code);
+          }
+
+          return result;
+          
+      })
+    } catch (error) {
+      console.error(error);
+    }
+    
 }) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;

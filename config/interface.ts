@@ -17,6 +17,8 @@ export interface Config {
   //dbUrl is the URL that describes the connection to the database
   dbUrl:string;
 
+  bech32Encode:boolean
+
   // Backend config specifically for lnd.
   backendConfigLnd?: {
     // Address to the gRPC server (i.e 127.0.0.1:10009).
