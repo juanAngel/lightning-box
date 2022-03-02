@@ -42,6 +42,9 @@ export interface ILnUrlWithdrawQuery {
 export interface IStatusResponse{
     status: "OK"
 }
+export interface IEvent extends IStatusResponse{
+    tag: "event"
+}
 
 export interface IErrorResponse {
     status: "ERROR";

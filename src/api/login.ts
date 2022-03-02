@@ -7,6 +7,7 @@ import config from "../../config/config";
 import {
   createLnUrlAuth, 
   IErrorResponse, 
+  IEvent, 
   IStatusResponse, 
   LnUrlAuthQuery, 
   verifyLnurlAuth
@@ -28,12 +29,12 @@ export interface ICommand{
 export interface IJWTPayload{
   key:string;
 }
-export interface ILoginRequest{
+export interface ILoginRequest extends IStatusResponse{
   tag: "loginRequest";
   lnurlAuth:string;
   expirationDate:Date;
 }
-export interface ILoginSucessResponse extends IStatusResponse{
+export interface ILoginSucessResponse extends IEvent{
   event: 'JWT';
   token: string;
 }
@@ -94,6 +95,7 @@ let lnurlAuth = async (key:string, sig:string, k1:string,app:FastifyInstance):Pr
 
   return {
     status:"OK",
+    tag:"event",
     event:"JWT",
     token:accessToken
   }
@@ -124,6 +126,7 @@ export class CommandGetKeyauth{
       CommandGetKeyauth.loginSession.delete(k1)
       connection.socket.send(JSON.stringify({
           status:"OK",
+          tag:"event",
           event:"JWT",
           token:accessToken
       }))
@@ -145,6 +148,7 @@ const createLnUrlAuthRequest = async (db:Database,prefix:string):Promise<ILoginR
   const lnurlAuth = createLnUrlAuth(k1,`${config.domainUrl}${apiPrefix}/lnurl-auth/`);
 
   return {
+    status: "OK",
     tag:"loginRequest",
     lnurlAuth:lnurlAuth,
     expirationDate:expirationDate,
