@@ -22,6 +22,8 @@ import { SocketStream } from "fastify-websocket";
 import { FastifyReply } from "fastify";
 
 
+import {Lightning,Router} from "lnd-grpc";
+
 export interface ICommand{
   cmdName:string
   arg:{[key:string]:any}[]
@@ -183,7 +185,7 @@ export const AuthDiscovery = (async (app, { lightning, router})=>{
     console.error(error);
   }
   
-}) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
+}) as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>;
 
 export const Login = (async (app, { lightning, router})=>{
     try {
@@ -236,4 +238,4 @@ export const Login = (async (app, { lightning, router})=>{
       console.error(error);
     }
     
-}) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
+}) as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>;

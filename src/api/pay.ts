@@ -2,7 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { Client } from "@grpc/grpc-js";
 import crypto from "crypto";
 
-import { addInvoice } from "../utils/lnd-api";
+//import { addInvoice } from "../utils/lnd-api";
 import { createPayment } from "../db/payment";
 import { getWalletByAlias } from "../db/wallet";
 import { MSAT } from "../utils/constants";
@@ -12,6 +12,8 @@ import { constructLnUrlPayMetaData,
   ILnUrlPayQuerystring, 
   parseSendTextCallbackQueryParams 
 } from "../utils/lnurl";
+
+import {Lightning,Router} from "lnd-grpc";
 
 export const PayAddressDiscover = async function (app, { lightning, router }) {
   const db = await getDb();
@@ -40,7 +42,7 @@ export const PayAddressDiscover = async function (app, { lightning, router }) {
       commentAllowed: 144,
     };
   });
-} as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>
+} as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>
 
 export const PayAddress = async function (app, { lightning, router }) {
   const db = await getDb();
@@ -74,7 +76,9 @@ export const PayAddress = async function (app, { lightning, router }) {
       }
 
       // TODO check amount
-
+      
+      //TODO: refactoring to new library
+      /*
       const invoice = await addInvoice(
         lightning,
         amount,
@@ -96,7 +100,7 @@ export const PayAddress = async function (app, { lightning, router }) {
         pr: invoice.paymentRequest,
         successAction: null,
         disposable: true,
-      };
+      };*/
     } catch (error:any) {
       response.code(500);
       return {
@@ -105,5 +109,5 @@ export const PayAddress = async function (app, { lightning, router }) {
       };
     }
   });
-} as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
+} as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>;
 

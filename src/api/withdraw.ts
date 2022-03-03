@@ -9,12 +9,12 @@ import {
   updatePayment,
   updatePaymentsSetAsForwarded,
 } from "../db/payment";
-import { sendPaymentSync, subscribeInvoices } from "../utils/lnd-api";
+//import { sendPaymentSync, subscribeInvoices } from "../utils/lnd-api";
 import { MSAT } from "../utils/constants";
 import getDb from "../db/db";
 import { getWithdrawalCode } from "../db/withdrawalCode";
 import config from "../../config/config";
-import { lnrpc } from "../proto";
+//import { lnrpc } from "../proto";
 import { 
   IErrorResponse, 
   ILnUrlWithdrawQuery, 
@@ -26,12 +26,17 @@ import {
 import {decode as invoiceDecode} from "@node-lightning/invoice";
 import { getWalletByAlias, updateWalletBalance } from "../db/wallet";
 
+
+import {Lightning,Router} from "lnd-grpc";
+
 const Withdraw = async function (app, { lightning, router }) {
   try {
     const db = await getDb();
     const withdrawalRequests = new Map<string, string>();
     const withdrawalMutex = new Map<string, Mutex>();
 
+    //TODO: refactoring to new library
+    /*
     const invoiceSubscription = subscribeInvoices(lightning);
     invoiceSubscription.on("data", async (data) => {
       console.log("\nINCOMING INVOICE");
@@ -57,7 +62,7 @@ const Withdraw = async function (app, { lightning, router }) {
           });
         }
       }
-    });
+    });*/
 
     app.get<{
       Params: { code: string };
@@ -153,11 +158,13 @@ const Withdraw = async function (app, { lightning, router }) {
         let amount = (await getWalletByAlias(db,userAlias))?.amountMSat;
 
         if(amount && amount >= invoiceAmount){
+          //TODO: refactoring to new library
+          /*
           const result = await sendPaymentSync(lightning, withdrawResponse.pr);
           console.log(result);
           if (!result.paymentError || result.paymentError.length === 0) {
             await updateWalletBalance(db,userAlias,Number.parseInt(invoice.valueMsat)*-1);
-          }
+          }*/
         }else{
           console.log(`insufficient balance for the wallet ${userAlias}`);
         }
@@ -179,7 +186,7 @@ const Withdraw = async function (app, { lightning, router }) {
   } catch (error) {
       console.error(error);
   }
-} as FastifyPluginAsync<{ lightning: Client; router: Client }>;
+} as FastifyPluginAsync<{ lightning: Lightning; router: Router }>;
 
 export default Withdraw;
 

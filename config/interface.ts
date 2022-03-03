@@ -21,13 +21,15 @@ export interface Config {
 
   // Backend config specifically for lnd.
   backendConfigLnd?: {
+    //
+    lndconnectUri?:string
     // Address to the gRPC server (i.e 127.0.0.1:10009).
-    grpcServer: string;
+    grpcServer?:string;
 
     // Path to tls.cert (i.e ~/.lnd/tls.cert).
-    cert: string;
+    cert?: string;
 
     // Path to the admin.macaroon (i.e ~/.lnd/data/chain/bitcoin/mainnet/admin.macaroon).
-    adminMacaroon: string;
+    adminMacaroon?: string;
   };
 }

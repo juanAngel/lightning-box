@@ -3,6 +3,8 @@ import { FastifyPluginAsync } from "fastify";
 import { AuthDiscovery } from "./login";
 import { PayAddressDiscover } from "./pay";
 
+import {Lightning,Router} from "lnd-grpc";
+
 
 
 export const Discovery = (async (app, { lightning, router})=>{
@@ -18,4 +20,4 @@ export const Discovery = (async (app, { lightning, router})=>{
     router,
   });
 
-}) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
+}) as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>;

@@ -8,6 +8,8 @@ import withdraw from "./withdraw";
 
 export let apiPrefix = "/";
 
+import {Lightning,Router} from "lnd-grpc";
+
 export const V1 = (async (app, { lightning, router,prefix})=>{
     apiPrefix = prefix || "/";
 
@@ -32,4 +34,4 @@ export const V1 = (async (app, { lightning, router,prefix})=>{
     });
 
 
-}) as FastifyPluginAsync<{ lightning: Client; router: Client, prefix?:string }>;
+}) as FastifyPluginAsync<{ lightning: Lightning; router: Router, prefix?:string }>;

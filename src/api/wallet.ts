@@ -12,6 +12,9 @@ import { jwtDecode, jwtVerify } from "./login";
 import { apiPrefix } from "./v1";
 import { createWallet, getWalletByAlias, getWalletsByPubkey } from "../db/wallet";
 
+
+import {Lightning,Router} from "lnd-grpc";
+
 export interface IWalletRegisterResponse{
     tag: "walletRegisterRequest";
     lightningAddress:string;
@@ -109,4 +112,4 @@ export const Wallet = async function (app, { lightning, router }){
               }
           }
     });
-} as FastifyPluginAsync<{ lightning: Client; router: Client }>;
+} as FastifyPluginAsync<{ lightning: Lightning; router: Router }>;
