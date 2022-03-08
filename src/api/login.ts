@@ -117,6 +117,7 @@ export class CommandGetKeyauth{
     const lnurlAuth = createLnUrlAuth(k1,`${config.domainUrl}${apiPrefix}/lnurl-auth-ws/`);
   
     let result = {
+      status:"OK",
       tag:"loginRequest",
       lnurlAuth:lnurlAuth,
       expirationDate:expirationDate,
