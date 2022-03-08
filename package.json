@@ -2,7 +2,6 @@
   "name": "lightning-box",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "postbuild": "cp src/proto.js dist",
     "start": "rm -rf dist && npm run build && node dist/src/server.js",
     "watch": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon -w dist dist/server.js\"",
     "proto": "pbjs --force-long -t static-module -o src/proto.js proto/rpc.proto proto/router.proto && pbts -o src/proto.d.ts src/proto.js",
