@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import config from "../config/config";
 
 import app from "./app";
@@ -7,7 +8,13 @@ const domain = host.split(":")[0];
 const port = Number.parseInt(host.split(":")[1] ?? "8080");
 
 (async () => {
-  const server = await app({logger: true});
+  const server = await app({
+    logger: true,
+    https:config.https?{
+      cert:readFileSync(config.httpsCredDir+"tls.cert"),
+      key: readFileSync(config.httpsCredDir+"tls.key")
+    }:undefined
+  });
 
   server.listen(port, domain, (err, address) => {
     if (err) {

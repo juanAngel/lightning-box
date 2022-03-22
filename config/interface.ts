@@ -12,6 +12,10 @@ export interface Config {
   // This is needed to be able to construct lnurl callbacks.
   domainUrl: string;
 
+  https:boolean;
+
+  httpsCredDir:string
+
   // backend is the lightning node that will act as a backend for this server.
   backend: "lnd";
   //dbUrl is the URL that describes the connection to the database

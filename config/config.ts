@@ -1,7 +1,7 @@
 import { Config } from "./interface";
-import env from "dotenv";
+import "dotenv/config";
 
-const result = env.config();
+//const result = env.config();
 
 // Please see interface.ts for description about each config
 const config: Config = {
@@ -9,6 +9,8 @@ const config: Config = {
   serverHost: process.env.HOST || "0.0.0.0:8080",
   domain: process.env.DOMAIN || "192.168.1.1:8080",
   domainUrl: process.env.DOMAIN_URL ||"https://192.168.1.1:8080",
+  https: process.env.HTTPS=="true"?true:false,
+  httpsCredDir: process.env.HTTPS_CRED_DIR || "~/.ln-box/",
   backend: "lnd",
   dbUrl: process.env.DB_URL ||"sqlite://source=~/.ln-box/database.db",
   bech32Encode: process.env.BECH32_ENCODE=="true"?true:false || true,

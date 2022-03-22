@@ -6,6 +6,8 @@ const config: Config = {
   serverHost: "0.0.0.0:8080",
   domain: "192.168.1.1:8080",
   domainUrl: "http://192.168.1.1:8080",
+  https:false,
+  httpsCredDir: "~/.ln-box/",
   backend: "lnd",
   dbUrl: "sqlite://source=~/.ln-box/database.db",
   bech32Encode:true,

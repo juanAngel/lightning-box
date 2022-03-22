@@ -1,5 +1,6 @@
-import fastify, { FastifyServerOptions } from "fastify";
+import fastify, { FastifyServerOptions,FastifyHttpsOptions } from "fastify";
 import fastifyCors from "fastify-cors";
+import * as https from 'https'
 
 //import { getInfo } from "./utils/lnd-api";
 //import { getGrpcClients } from "./utils/grpc";
@@ -15,7 +16,7 @@ import config from "../config/config";
 
 //const { lightning, router } = getGrpcClients();
 
-export default async function (options?: FastifyServerOptions) {
+export default async function (options?: FastifyServerOptions|FastifyHttpsOptions<https.Server>) {
   const app = fastify(options);
   app.register(fastifyCors);
   
