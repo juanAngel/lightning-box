@@ -11,8 +11,8 @@ const port = Number.parseInt(host.split(":")[1] ?? "8080");
   const server = await app({
     logger: true,
     https:config.https?{
-      cert:readFileSync(config.httpsCredDir+"tls.cert"),
-      key: readFileSync(config.httpsCredDir+"tls.key")
+      cert:readFileSync(config.httpsCredDir+"fullchain.pem"),
+      key: readFileSync(config.httpsCredDir+"privkey.pem")
     }:undefined
   });
 
